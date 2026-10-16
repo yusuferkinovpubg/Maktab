@@ -1,0 +1,1598 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Intellectual Game — The Circle of Clever Students</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Fredoka:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; user-select: none; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
+      min-height: 100vh;
+      margin: 0;
+      color: #1e293b;
+      overflow-x: hidden;
+    }
+    .font-display {
+      font-family: 'Fredoka', 'Inter', sans-serif;
+    }
+    /* PPTX 3D Bevel Button Styles matching Slide 2 */
+    .bevel-btn {
+      position: relative;
+      border-radius: 10px;
+      font-weight: 800;
+      color: #ffffff;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.45);
+      box-shadow:
+        inset 0 3px 5px rgba(255, 255, 255, 0.55),
+        inset 0 -4px 6px rgba(0, 0, 0, 0.35),
+        0 6px 12px rgba(0, 0, 0, 0.3);
+      border: 2px solid rgba(255, 255, 255, 0.35);
+      transition: all 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
+      cursor: pointer;
+    }
+    .bevel-btn:hover:not(:disabled) {
+      transform: translateY(-3px) scale(1.04);
+      box-shadow:
+        inset 0 4px 7px rgba(255, 255, 255, 0.7),
+        inset 0 -4px 6px rgba(0, 0, 0, 0.35),
+        0 10px 18px rgba(0, 0, 0, 0.4);
+      filter: brightness(1.08);
+    }
+    .bevel-btn:active:not(:disabled) {
+      transform: translateY(1px) scale(0.98);
+    }
+    .bevel-btn:disabled, .bevel-btn.played-tile {
+      opacity: 0.38;
+      filter: grayscale(0.55);
+      transform: scale(0.96);
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.4);
+    }
+    /* Category specific PPTX colors */
+    .cat-parallelepiped {
+      background: linear-gradient(145deg, #b388b3 0%, #997199 55%, #7a547a 100%);
+    }
+    .cat-kub {
+      background: linear-gradient(145deg, #91b38e 0%, #779674 55%, #5b7858 100%);
+    }
+    .cat-slindr {
+      background: linear-gradient(145deg, #b58080 0%, #996969 55%, #7a4e4e 100%);
+    }
+    .cat-konus {
+      background: linear-gradient(145deg, #b5b572 0%, #99995d 55%, #787843 100%);
+    }
+    .cat-shar {
+      background: linear-gradient(145deg, #8fa8b5 0%, #768e99 55%, #586e78 100%);
+    }
+    /* Category label left column matching Slide 2 */
+    .cat-label-parallelepiped {
+      background: linear-gradient(145deg, #a87ca8 0%, #875f87 100%);
+      color: #fff;
+    }
+    .cat-label-kub {
+      background: linear-gradient(145deg, #fafbf7 0%, #e2ebd7 100%);
+      color: #2d422b;
+      text-shadow: none;
+      border-color: #997199;
+    }
+    .cat-label-slindr {
+      background: linear-gradient(145deg, #a87ca8 0%, #875f87 100%);
+      color: #fff;
+    }
+    .cat-label-konus {
+      background: linear-gradient(145deg, #d4f8d0 0%, #b5e8b0 100%);
+      color: #1f3a1d;
+      text-shadow: none;
+      border-color: #997199;
+    }
+    .cat-label-shar {
+      background: linear-gradient(145deg, #8fa8b5 0%, #68808c 100%);
+      color: #fff;
+    }
+
+    /* Slide Stage Container */
+    .slide-stage {
+      position: relative;
+      width: 100%;
+      max-width: 1080px;
+      min-height: 640px;
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.55), 0 0 0 3px rgba(255, 255, 255, 0.15);
+      background-size: 100% 100%;
+      background-position: center;
+      background-repeat: no-repeat;
+      transition: background-image 0.25s ease;
+    }
+
+    /* 3D Banner Title from Slide 1 & 2 */
+    .pptx-title-banner {
+      background: linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%);
+      border: 3px solid #cbd5e1;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.18), inset 0 2px 0 #ffffff;
+      border-radius: 12px;
+    }
+
+    /* Floating animations for Slide 1 shapes */
+    @keyframes floatSlow {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-8px) rotate(4deg); }
+    }
+    @keyframes pulseGlow {
+      0%, 100% { transform: scale(1); filter: drop-shadow(0 6px 12px rgba(0,0,0,0.25)); }
+      50% { transform: scale(1.05); filter: drop-shadow(0 10px 22px rgba(220,38,38,0.45)); }
+    }
+    .animate-float {
+      animation: floatSlow 4s ease-in-out infinite;
+    }
+    .thinker-btn {
+      cursor: pointer;
+      transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+      animation: pulseGlow 2.8s ease-in-out infinite;
+    }
+    .thinker-btn:hover {
+      transform: scale(1.09) rotate(-2deg);
+    }
+    .img-btn {
+      cursor: pointer;
+      transition: transform 0.2s ease, filter 0.2s ease;
+    }
+    .img-btn:hover {
+      transform: scale(1.06);
+      filter: drop-shadow(0 6px 14px rgba(0,0,0,0.35)) brightness(1.05);
+    }
+    .img-btn:active {
+      transform: scale(0.96);
+    }
+    @keyframes popIn {
+      0% { opacity: 0; transform: scale(0.88) translateY(12px); }
+      100% { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .pop-in {
+      animation: popIn 0.32s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+  </style>
+</head>
+<body class="flex flex-col items-center justify-between p-2 sm:p-4 min-h-screen">
+
+  <!-- Top Control & Score Bar -->
+  <header class="w-full max-w-[1080px] mb-2 sm:mb-3 bg-slate-900/90 backdrop-blur-md border border-slate-700/80 rounded-2xl px-3 py-2.5 sm:px-5 sm:py-3 shadow-xl flex flex-wrap items-center justify-between gap-2 text-white">
+    <div class="flex items-center gap-2.5">
+      <button id="btnTopHome" class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/40 text-amber-200 font-bold text-xs sm:text-sm transition" title="Bosh sahifaga qaytish">
+        <span>🦉</span>
+        <span class="hidden sm:inline">Intellectual Game</span>
+      </button>
+      <button id="btnTopBoard" class="px-3 py-1.5 rounded-xl bg-indigo-600/80 hover:bg-indigo-500 text-white font-semibold text-xs sm:text-sm transition shadow">
+        📋 Savollar doskasi
+      </button>
+      <span id="progressBadge" class="px-2.5 py-1 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 text-xs font-semibold">
+        0 / 25 o'ynaldi
+      </span>
+    </div>
+
+    <!-- Teams Scoreboard Strip -->
+    <div id="scoreboardStrip" class="flex flex-wrap items-center gap-2"></div>
+
+    <!-- Utility Controls -->
+    <div class="flex items-center gap-1.5">
+      <button id="btnTeamModal" class="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs font-semibold text-slate-200 transition" title="Jamoalarni sozlash">
+        👥 Jamoalar
+      </button>
+      <button id="btnSoundToggle" class="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs font-semibold text-slate-200 transition" title="Ovoz effektlari">
+        🔊 Ovoz: Yoqilgan
+      </button>
+      <button id="btnResetGame" class="px-2.5 py-1.5 rounded-xl bg-rose-900/60 hover:bg-rose-800 border border-rose-700/60 text-xs font-semibold text-rose-200 transition" title="O'yinni yangidan boshlash">
+        🔄 Yangilash
+      </button>
+    </div>
+  </header>
+
+  <!-- Main PPTX Slide Stage -->
+  <main id="slideStage" class="slide-stage flex flex-col justify-between p-4 sm:p-7">
+
+    <!-- ================= VIEW 1: SLIDE 1 (START SCREEN) ================= -->
+    <section id="viewStart" class="w-full h-full flex-1 flex flex-col justify-between relative z-10 min-h-[560px]">
+      <!-- Top Header Band (matches PPTX top frame) -->
+      <div class="w-full pt-1 sm:pt-2 flex justify-center">
+        <div class="pptx-title-banner w-full max-w-4xl py-2.5 sm:py-4 px-4 text-center">
+          <h1 class="font-display text-2xl sm:text-5xl font-black tracking-wide text-red-700 drop-shadow-sm">
+            INTELLEcTUAL game
+          </h1>
+          <p class="text-xs sm:text-sm font-semibold text-slate-600 mt-0.5">
+            The Circle of Clever Students • Matematik &amp; Intellektual Viktorina
+          </p>
+        </div>
+      </div>
+
+      <!-- Center Area with Original PPTX Decorative Shapes around the Owl -->
+      <div class="flex-1 flex flex-col md:flex-row items-center justify-between px-2 sm:px-8 py-4 gap-4 relative">
+        <!-- Left Decorative 7-Point Star (from Slide 1 AutoShape '7-конечная звезда 4') -->
+        <div class="animate-float flex flex-col items-center">
+          <div class="w-28 h-28 sm:w-36 sm:h-36 relative flex items-center justify-center">
+            <svg viewBox="0 0 120 120" class="w-full h-full drop-shadow-lg">
+              <defs>
+                <linearGradient id="starGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#fde047" />
+                  <stop offset="50%" stop-color="#eab308" />
+                  <stop offset="100%" stop-color="#ca8a04" />
+                </linearGradient>
+              </defs>
+              <polygon points="60,5 73,35 106,25 88,54 115,76 81,82 84,115 60,92 36,115 39,82 5,76 32,54 14,25 47,35" fill="url(#starGrad)" stroke="#ffffff" stroke-width="3" />
+            </svg>
+            <span class="absolute font-display font-bold text-xs sm:text-sm text-amber-950 text-center px-3 leading-tight">
+              5 Bo'lim<br>25 Savol
+            </span>
+          </div>
+        </div>
+
+        <!-- Center Owl Spacer & Quick Mode Card -->
+        <div class="flex flex-col items-center justify-end mt-36 sm:mt-44 bg-white/85 backdrop-blur-md px-5 py-3.5 rounded-2xl border-2 border-emerald-700/30 shadow-xl max-w-md text-center">
+          <div class="text-xs sm:text-sm font-bold text-emerald-900 mb-1">
+            🎯 O'yin tartibi:
+          </div>
+          <p class="text-xs text-slate-700 leading-relaxed">
+            Geometrik shakllar (<b>Parallelepiped, Kub, Slindr, Konus, Shar</b>) bo'yicha 10 dan 50 ballgacha savollarni tanlang. Savolga javob bering yoki <b>"?" (Mutafakkir)</b> rasmini bosib to'g'ri javobni oching!
+          </p>
+          <!-- Smiley Face Badge from Slide 1 ('Улыбающееся лицо 5') -->
+          <div class="mt-2 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-100 border border-amber-300 text-amber-900 text-xs font-bold">
+            <span>😊</span>
+            <span>Omadli lahza sandiqchalari sizni kutmoqda!</span>
+          </div>
+        </div>
+
+        <!-- Right Decorative Donut Ring (from Slide 1 AutoShape 'Кольцо 3') -->
+        <div class="animate-float flex flex-col items-center" style="animation-delay: 1.2s;">
+          <div class="w-28 h-28 sm:w-36 sm:h-36 relative flex items-center justify-center">
+            <svg viewBox="0 0 120 120" class="w-full h-full drop-shadow-lg">
+              <defs>
+                <linearGradient id="donutGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#fb7185" />
+                  <stop offset="100%" stop-color="#e11d48" />
+                </linearGradient>
+              </defs>
+              <path d="M60,10 A50,50 0 1,0 60,110 A50,50 0 1,0 60,10 Z M60,35 A25,25 0 1,1 60,85 A25,25 0 1,1 60,35 Z" fill="url(#donutGrad)" stroke="#ffffff" stroke-width="3" fill-rule="evenodd" />
+            </svg>
+            <span class="absolute bottom-1 bg-white/90 text-rose-800 font-bold text-[11px] px-2 py-0.5 rounded-full shadow">
+              Zukkolar davrasi
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Action Buttons (Exact PPTX image3.png 'ССЫЛКИ' & image4.png 'НАЧАТЬ ИГРУ') -->
+      <div class="w-full flex flex-col sm:flex-row items-center justify-between gap-4 pt-3 px-2 sm:px-6">
+        <button id="btnOpenLinks" class="img-btn flex flex-col items-center group bg-white/80 hover:bg-white px-4 py-2 rounded-2xl border border-slate-300 shadow-md">
+          <img src="./assets/image3.png" alt="ССЫЛКИ" class="h-9 sm:h-11 w-auto object-contain" />
+          <span class="text-[11px] font-bold text-slate-700 mt-0.5">Qoidalar va PPTX Rasmlar</span>
+        </button>
+
+        <button id="btnStartGame" class="img-btn flex flex-col items-center group bg-amber-50/95 hover:bg-white px-5 py-2.5 rounded-2xl border-2 border-red-400 shadow-xl">
+          <img src="./assets/image4.png" alt="НАЧАТЬ ИГРУ" class="h-10 sm:h-12 w-auto object-contain" />
+          <span class="text-xs font-extrabold text-red-700 mt-0.5 tracking-wide">▶ O'YINNI BOSHLASH</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ================= VIEW 2: SLIDE 2 (MAIN GAME BOARD) ================= -->
+    <section id="viewBoard" class="w-full h-full flex-1 hidden flex-col justify-between relative z-10 min-h-[560px]">
+      <!-- Top Title Banner (Slide 2: 'The circle of Clever students') -->
+      <div class="w-full flex justify-end pl-20 sm:pl-36 pr-1 pt-1">
+        <div class="pptx-title-banner w-full py-2 sm:py-3 px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
+          <h2 class="font-display text-xl sm:text-3xl font-black text-red-900 tracking-tight text-center sm:text-left">
+            The circle of Clever students
+          </h2>
+          <div id="activeTurnBanner" class="flex items-center gap-2 px-3 py-1 rounded-xl bg-emerald-100 border border-emerald-400 text-emerald-950 text-xs sm:text-sm font-bold">
+            <span>🎯 Navbat:</span>
+            <span id="currentTeamName" class="underline decoration-2">1-Jamoa</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5x5 Category & Point Grid (Matches Slide 2 coordinates & colors) -->
+      <div class="flex-1 flex flex-col justify-center my-3 sm:my-5 px-1 sm:px-4">
+        <div id="boardGrid" class="flex flex-col gap-2.5 sm:gap-3.5 w-full max-w-4xl mx-auto">
+          <!-- Dynamically populated by JS -->
+        </div>
+      </div>
+
+      <!-- Bottom Bar with Original 'ВЫХОД' (image6.png) Button -->
+      <div class="w-full flex items-center justify-between px-2 sm:px-6 pt-1">
+        <div class="text-xs sm:text-sm font-semibold text-slate-700 bg-white/80 px-3 py-1.5 rounded-xl border border-slate-300 shadow-sm">
+          💡 Kerakli bo'lim va ball ustiga bosing
+        </div>
+
+        <button id="btnFinishGame" class="img-btn flex flex-col items-center bg-white/85 hover:bg-white px-4 py-1.5 rounded-2xl border border-red-300 shadow-md" title="O'yinni yakunlash va natijalarni ko'rish">
+          <img src="./assets/image6.png" alt="ВЫХОД" class="h-8 sm:h-10 w-auto object-contain" />
+          <span class="text-[10px] font-bold text-red-800">Natijalar / Chiqish</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ================= VIEW 3: SLIDES 3–27 (QUESTION & SPECIAL SLIDES) ================= -->
+    <section id="viewQuestion" class="w-full h-full flex-1 hidden flex-col justify-between relative z-10 min-h-[560px]">
+      <!-- Top Header Band: Category Name, Nomination/Sub-header, Formula Badges, and Points -->
+      <div class="w-full flex flex-col gap-1 pl-20 sm:pl-36 pr-2 pt-1">
+        <!-- Optional Water Droplets / Formula Bar (for Slindr, Konus, Shar) -->
+        <div id="questionDecorStrip" class="hidden items-center justify-between px-3 py-1 rounded-xl border border-white/60 shadow-sm">
+          <div class="flex items-center gap-2">
+            <img id="formulaImgLeft" src="./assets/image16.png" alt="U=A/q" class="h-7 w-7 rounded bg-white p-0.5 shadow" />
+            <span id="nominationLabel" class="text-xs sm:text-sm font-extrabold tracking-widest uppercase text-slate-700">НОМИНАЦИЯ</span>
+          </div>
+          <img id="formulaImgRight" src="./assets/image16.png" alt="U=A/q" class="h-7 w-7 rounded bg-white p-0.5 shadow" />
+        </div>
+
+        <!-- Main Slide Header Row -->
+        <div class="bg-white/85 backdrop-blur-md border-2 border-white/80 rounded-2xl px-4 py-2 sm:px-6 sm:py-2.5 shadow-lg flex items-center justify-between">
+          <div>
+            <span id="qSubHeader" class="block text-[11px] sm:text-xs font-extrabold uppercase tracking-wider text-slate-500">НОМИНАЦИЯ</span>
+            <h2 id="qCategoryTitle" class="font-display text-xl sm:text-3xl font-black text-blue-900 uppercase tracking-wide">
+              PARALLELEPIPED
+            </h2>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="px-4 py-1.5 rounded-2xl bg-red-600 text-white font-display text-2xl sm:text-4xl font-black shadow-md border-2 border-red-200" id="qPointsBadge">
+              10
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Center Content Area: Question Text / Lucky Chests / Penalty + Answer Area -->
+      <div class="flex-1 flex flex-col items-center justify-between my-3 px-2 sm:px-8 gap-3">
+        <!-- Question Card -->
+        <div id="qPromptBox" class="w-full max-w-4xl bg-white/92 backdrop-blur-md border-2 border-slate-300/90 rounded-3xl p-5 sm:p-7 shadow-xl text-center flex flex-col items-center justify-center min-h-[150px] pop-in">
+          <p id="qText" class="font-display text-2xl sm:text-4xl font-extrabold text-slate-900 leading-snug"></p>
+
+          <!-- Lucky Chests Container (Shown on Omadli Lahza slides) -->
+          <div id="luckyChestsContainer" class="hidden flex-wrap items-center justify-center gap-4 mt-4">
+            <!-- Populated with 1 or 3 image9.gif chests matching Slide 6, 8, 17, 20, 24 -->
+          </div>
+
+          <!-- Penalty Notice (Shown on Konus 40: -20 ball?) -->
+          <div id="penaltyNotice" class="hidden mt-3 px-4 py-2 rounded-xl bg-rose-100 border border-rose-300 text-rose-800 text-sm sm:text-base font-bold">
+            ⚠️ Diqqat! Ushbu katakcha jarima katakchasi hisoblanadi (-20 ball).
+          </div>
+        </div>
+
+        <!-- Interactive Student Answer Input Bar (for regular questions before reveal) -->
+        <div id="interactiveInputRow" class="w-full max-w-xl flex flex-col sm:flex-row items-center gap-2 bg-slate-900/80 backdrop-blur-md p-2.5 rounded-2xl border border-slate-700 shadow-lg">
+          <input id="studentAnswerInput" type="text" placeholder="Javobingizni yozib tekshiring (masalan: 0,01)..." class="w-full flex-1 px-4 py-2 rounded-xl bg-white text-slate-900 font-semibold text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-amber-400" />
+          <button id="btnCheckAnswer" class="w-full sm:w-auto px-5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-sm sm:text-base transition shadow">
+            ✓ Tekshirish
+          </button>
+        </div>
+        <div id="answerFeedbackMsg" class="hidden text-sm sm:text-base font-extrabold px-4 py-1.5 rounded-xl"></div>
+
+        <!-- Lower Area: Revealed Answer + PPTX Thinker Image & Home Image -->
+        <div class="w-full max-w-4xl grid grid-cols-1 md:grid-cols-12 items-center gap-4 pt-1">
+          <!-- Answer Reveal Box + Scoring Actions (Left/Center 8 cols) -->
+          <div class="md:col-span-8 flex flex-col items-center md:items-start justify-center">
+            <!-- Hidden Answer State Prompt -->
+            <div id="answerHiddenHint" class="w-full bg-amber-50/90 border-2 border-dashed border-amber-400 rounded-2xl p-4 text-center">
+              <p class="text-sm sm:text-base font-bold text-amber-900">
+                🤔 To'g'ri javobni ochish uchun o'ng tomondagi <b>"?" (Mutafakkir)</b> ustiga bosing!
+              </p>
+            </div>
+
+            <!-- Revealed Answer Box (Matches PPTX red/green answer text box) -->
+            <div id="answerRevealBox" class="hidden w-full bg-white/95 border-3 border-emerald-500 rounded-2xl p-4 sm:p-5 shadow-2xl pop-in">
+              <div class="flex items-center justify-between mb-1">
+                <span class="text-xs font-extrabold uppercase tracking-wider text-emerald-700 bg-emerald-100 px-2.5 py-0.5 rounded-full">
+                  ✓ To'g'ri javob:
+                </span>
+                <span id="qSlideRef" class="text-xs font-semibold text-slate-400">Slayd #3</span>
+              </div>
+              <div id="qAnswerText" class="font-display text-2xl sm:text-4xl font-black text-red-600 my-1"></div>
+
+              <!-- Point Awarding Buttons -->
+              <div id="scoringButtonsRow" class="mt-3 pt-3 border-t border-slate-200 flex flex-wrap items-center gap-2">
+                <!-- Dynamically filled by JS for teams -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Right 4 cols: Original PPTX Thinker Image (Click to Reveal) & Home Image (Return to Slide 2) -->
+          <div class="md:col-span-4 flex items-end justify-center md:justify-end gap-4">
+            <!-- Thinker on Question Mark (image8 / image11 / image15 / image18) -->
+            <div class="flex flex-col items-center">
+              <button id="btnThinkerReveal" class="thinker-btn focus:outline-none" title="Javobni ko'rsatish uchun bosing!">
+                <img id="qThinkerImg" src="./assets/image8.png" alt="Javobni ko'rish" class="h-36 sm:h-44 w-auto object-contain select-none" />
+              </button>
+              <span id="thinkerCaption" class="mt-1 px-2.5 py-0.5 rounded-full bg-slate-900/80 text-white text-[11px] font-bold shadow">
+                🔍 Javobni ochish
+              </span>
+            </div>
+
+            <!-- Home Button (image7 / image10 / image13 / image17) -->
+            <div class="flex flex-col items-center">
+              <button id="btnSlideHome" class="img-btn bg-white/90 hover:bg-white p-2 rounded-2xl border-2 border-slate-300 shadow-lg" title="Savollar doskasiga qaytish">
+                <img id="qHomeImg" src="./assets/image7.png" alt="Bosh sahifa" class="h-14 sm:h-16 w-auto object-contain" />
+              </button>
+              <span class="mt-1 px-2 py-0.5 rounded-full bg-white/90 text-slate-800 text-[11px] font-bold shadow">
+                🏠 Doskaga
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= VIEW 4: FINAL RESULTS / WINNER PODIUM ================= -->
+    <section id="viewResults" class="w-full h-full flex-1 hidden flex-col justify-between items-center relative z-10 min-h-[560px] text-center py-4">
+      <div class="pptx-title-banner w-full max-w-3xl py-3 px-6">
+        <h2 class="font-display text-2xl sm:text-4xl font-black text-red-700">
+          🏆 O'YIN NATIJALARI
+        </h2>
+        <p class="text-xs sm:text-sm font-semibold text-slate-600">
+          The Circle of Clever Students — Yakuniy hisob va g'oliblar
+        </p>
+      </div>
+
+      <div id="resultsLeaderboard" class="w-full max-w-2xl bg-white/92 backdrop-blur-md rounded-3xl p-5 sm:p-7 border-2 border-amber-400 shadow-2xl my-4 flex flex-col gap-3">
+        <!-- Populated by JS -->
+      </div>
+
+      <div class="flex flex-wrap items-center justify-center gap-4">
+        <button id="btnBackToBoardFromResults" class="px-5 py-2.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-sm sm:text-base shadow-lg transition">
+          ⬅ Savollar doskasiga qaytish
+        </button>
+        <button id="btnPlayAgain" class="px-6 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-sm sm:text-base shadow-lg transition">
+          🔄 Yangi o'yin boshlash
+        </button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer Info -->
+  <footer class="w-full max-w-[1080px] mt-2 flex flex-wrap items-center justify-between text-xs text-slate-400 px-2 gap-2">
+    <div>
+      <span>🎓 <b>Game.pptx</b> asosida yaratilgan rasmiy veb-talqin (Vercel uchun tayyor)</span>
+    </div>
+    <div class="flex items-center gap-3">
+      <button id="btnFooterDeployInfo" class="underline hover:text-amber-300 font-semibold">
+        🚀 Vercel.app ga joylash yo'riqnomasi
+      </button>
+      <button id="btnFooterGallery" class="underline hover:text-amber-300 font-semibold">
+        🖼️ PPTX ichidagi 18 ta rasm
+      </button>
+    </div>
+  </footer>
+
+  <!-- ================= MODAL 1: TEAMS SETUP ================= -->
+  <div id="modalTeams" class="fixed inset-0 bg-slate-950/75 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 pop-in">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-200">
+        <h3 class="font-display text-xl font-black text-slate-900">👥 Jamoalar va hisobni boshqarish</h3>
+        <button id="btnCloseTeamsModal" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold">✕</button>
+      </div>
+      <p class="text-xs text-slate-600 mt-2">
+        Jamoa nomlarini o'zgartirishingiz, yangi jamoa qo'shishingiz yoki ballarni tahrirlashingiz mumkin:
+      </p>
+      <div id="teamsEditorList" class="my-4 flex flex-col gap-2.5 max-h-64 overflow-y-auto pr-1"></div>
+      <div class="flex items-center justify-between pt-3 border-t border-slate-200">
+        <button id="btnAddTeam" class="px-4 py-2 rounded-xl bg-indigo-100 hover:bg-indigo-200 text-indigo-900 font-bold text-xs sm:text-sm transition">
+          + Jamoa qo'shish
+        </button>
+        <button id="btnSaveTeams" class="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm shadow transition">
+          Saqlash va yopish
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL 2: LINKS / RULES / PPTX MEDIA GALLERY & VERCEL GUIDE ================= -->
+  <div id="modalInfo" class="fixed inset-0 bg-slate-950/75 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-3xl max-w-3xl w-full p-6 shadow-2xl border border-slate-200 max-h-[88vh] flex flex-col pop-in">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-200">
+        <div class="flex items-center gap-3">
+          <img src="./assets/image3.png" alt="ССЫЛКИ" class="h-8 w-auto" />
+          <h3 class="font-display text-lg sm:text-xl font-black text-slate-900">O'yin Qoidalari, PPTX Rasmlar va Vercel Yo'riqnomasi</h3>
+        </div>
+        <button id="btnCloseInfoModal" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold">✕</button>
+      </div>
+
+      <div class="overflow-y-auto pr-1 my-4 space-y-5 text-sm text-slate-700">
+        <!-- Rules Section -->
+        <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4">
+          <h4 class="font-bold text-amber-950 text-base mb-1.5">🎯 O'yin qoidalari (Game.pptx asosida):</h4>
+          <ul class="list-disc pl-5 space-y-1 text-xs sm:text-sm">
+            <li>O'yin maydoni 5 ta geometrik shakl bo'limidan iborat: <b>Parallelepiped, Kub, Slindr, Konus, Shar</b>.</li>
+            <li>Har bir bo'limda qiyinlik darajasiga qarab <b>10, 20, 30, 40, 50 ballik</b> jami 25 ta katakcha mavjud.</li>
+            <li><b>Omadli lahza (5 ta katakcha):</b> Parallelepiped-40, Kub-10, Slindr-50, Konus-30 va Shar-20 katakchalarida xazina sandiqchasi chiqadi va jamoaga savolsiz bonus ball beriladi!</li>
+            <li><b>Jarima katakchasi (-20 ball):</b> Konus-40 katakchasida <b>-20 ball</b> jarima mavjud.</li>
+            <li>Savol slaydida o'ng pastki burchakdagi <b>"?" (Mutafakkir)</b> ustiga bosilganda to'g'ri javob ochiladi, <b>Uycha (Home)</b> tugmasi orqali asosiy doskaga qaytiladi.</li>
+          </ul>
+        </div>
+
+        <!-- Vercel Deployment Guide -->
+        <div class="bg-slate-900 text-slate-100 rounded-2xl p-4">
+          <h4 class="font-bold text-emerald-400 text-base mb-1.5">🚀 Vercel.app ga joylash (3 xil oson usul):</h4>
+          <ol class="list-decimal pl-5 space-y-1.5 text-xs sm:text-sm">
+            <li><b>GitHub orqali (Tavsiya etiladi):</b> Taqdim etilgan <code>intellectual-game-vercel.zip</code> arxivini ochib, GitHub repozitoriyga yuklang va <a href="https://vercel.com/new" target="_blank" rel="noopener noreferrer" class="text-amber-300 underline">vercel.com/new</a> orqali "Import" tugmasini bosing — 15 soniyada <code>.vercel.app</code> domeningiz tayyor bo'ladi!</li>
+            <li><b>Vercel CLI orqali:</b> Arxiv ichidagi papkada terminalni ochib, <code>npx vercel --prod</code> buyrug'ini ishga tushiring.</li>
+            <li><b>Yagona fayl sifatida:</b> Ushbu <code>index.html</code> ichiga barcha 18 ta PPTX rasm kodlangan holda joylashtirilgan, shuning uchun hatto bitta <code>index.html</code> faylning o'zini ham istalgan hostingga yuklasangiz to'liq ishlaydi.</li>
+          </ol>
+        </div>
+
+        <!-- Extracted PPTX Images Showcase -->
+        <div>
+          <h4 class="font-bold text-slate-900 text-base mb-2">🖼️ Game.pptx ichidan olingan barcha original rasmlar (18 ta):</h4>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center text-xs">
+            <div class="p-2 border rounded-xl bg-slate-50 flex flex-col items-center justify-between">
+              <img src="./assets/image1.jpeg" alt="image1" class="h-16 object-contain rounded" />
+              <span class="mt-1 font-semibold text-slate-600">image1.jpeg (Ko'k fon)</span>
+            </div>
+            <div class="p-2 border rounded-xl bg-slate-50 flex flex-col items-center justify-between">
+              <img src="./assets/image2.jpeg" alt="image2" class="h-16 object-contain rounded" />
+              <span class="mt-1 font-semibold text-slate-600">image2.jpeg (Kirish foni)</span>
+            </div>
+            <div class="p-2 border rounded-xl bg-slate-50 flex flex-col items-center justify-between">
+              <img src="./assets/image5.jpeg" alt="image5" class="h-16 object-contain rounded" />
+              <span class="mt-1 font-semibold text-slate-600">image5.jpeg (Yashil fon)</span>
+            </div>
+            <div class="p-2 border rounded-xl bg-slate-50 flex flex-col items-center justify-between">
+              <img src="./assets/image12.jpeg" alt="image12" class="h-16 object-contain rounded" />
+              <span class="mt-1 font-semibold text-slate-600">image12.jpeg (Pushti fon)</span>
+            </div>
+            <div class="p-2 border rounded-xl bg-slate-50 flex flex-col items-center justify-between">
+              <img src="./assets/image4.png" alt="image4" class="h-10 object-contain" />
+              <span class="mt-1 font-semibold text-slate-600">image4.png (Начать игру)</span>
+            </div>
+            <div class="p-2 border rounded-xl bg-slate-50 flex flex-col items-center justify-between">
+              <img src="./assets/image3.png" alt="image3" class="h-10 object-contain" />
+              <span class="mt-1 font-semibold text-slate-600">image3.png (Ссылки)</span>
+            </div>
+            <div class="p-2 border rounded-xl bg-slate-50 flex flex-col items-center justify-between">
+              <img src="./assets/image6.png" alt="image6" class="h-10 object-contain" />
+              <span class="mt-1 font-semibold text-slate-600">image6.png (Выход)</span>
+            </div>
+            <div class="p-2 border rounded-xl bg-slate-50 flex flex-col items-center justify-between">
+              <img src="./assets/image9.gif" alt="image9" class="h-14 object-contain" />
+              <span class="mt-1 font-semibold text-slate-600">image9.gif (Xazina GIF)</span>
+            </div>
+            <div class="p-2 border rounded-xl bg-slate-50 flex flex-col items-center justify-between">
+              <img src="./assets/image8.png" alt="image8" class="h-16 object-contain" />
+              <span class="mt-1 font-semibold text-slate-600">image8.png (Ko'k ?)</span>
+            </div>
+            <div class="p-2 border rounded-xl bg-slate-50 flex flex-col items-center justify-between">
+              <img src="./assets/image11.png" alt="image11" class="h-16 object-contain" />
+              <span class="mt-1 font-semibold text-slate-600">image11.png (Yashil ?)</span>
+            </div>
+            <div class="p-2 border rounded-xl bg-slate-50 flex flex-col items-center justify-between">
+              <img src="./assets/image15.png" alt="image15" class="h-16 object-contain" />
+              <span class="mt-1 font-semibold text-slate-600">image15.png (Pushti ?)</span>
+            </div>
+            <div class="p-2 border rounded-xl bg-slate-50 flex flex-col items-center justify-between">
+              <img src="./assets/image18.png" alt="image18" class="h-16 object-contain" />
+              <span class="mt-1 font-semibold text-slate-600">image18.png (Zarg'aldoq ?)</span>
+            </div>
+            <div class="p-2 border rounded-xl bg-slate-50 flex flex-col items-center justify-between">
+              <img src="./assets/image7.png" alt="image7" class="h-12 object-contain" />
+              <span class="mt-1 font-semibold text-slate-600">image7.png (Ko'k uycha)</span>
+            </div>
+            <div class="p-2 border rounded-xl bg-slate-50 flex flex-col items-center justify-between">
+              <img src="./assets/image10.png" alt="image10" class="h-12 object-contain" />
+              <span class="mt-1 font-semibold text-slate-600">image10.png (Yashil uycha)</span>
+            </div>
+            <div class="p-2 border rounded-xl bg-slate-50 flex flex-col items-center justify-between">
+              <img src="./assets/image13.png" alt="image13" class="h-12 object-contain" />
+              <span class="mt-1 font-semibold text-slate-600">image13.png (Pushti uycha)</span>
+            </div>
+            <div class="p-2 border rounded-xl bg-slate-50 flex flex-col items-center justify-between">
+              <img src="./assets/image17.png" alt="image17" class="h-12 object-contain" />
+              <span class="mt-1 font-semibold text-slate-600">image17.png (Zarg'aldoq uycha)</span>
+            </div>
+            <div class="p-2 border rounded-xl bg-slate-50 flex flex-col items-center justify-between">
+              <img src="./assets/image14.jpeg" alt="image14" class="h-12 object-contain rounded" />
+              <span class="mt-1 font-semibold text-slate-600">image14.jpeg (Tomchilar)</span>
+            </div>
+            <div class="p-2 border rounded-xl bg-slate-50 flex flex-col items-center justify-between">
+              <img src="./assets/image16.png" alt="image16" class="h-12 object-contain" />
+              <span class="mt-1 font-semibold text-slate-600">image16.png (Formula U=A/q)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex justify-end pt-3 border-t border-slate-200">
+        <button id="btnCloseInfoModalBottom" class="px-6 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm">
+          Yopish
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ============================================================================
+    // EXTRACTED PPTX MEDIA ASSETS MAP
+    // ============================================================================
+    const MEDIA = {
+      bgBlue: "./assets/image1.jpeg",
+      bgStart: "./assets/image2.jpeg",
+      btnLinks: "./assets/image3.png",
+      btnStart: "./assets/image4.png",
+      bgGreen: "./assets/image5.jpeg",
+      btnExit: "./assets/image6.png",
+      homeBlue: "./assets/image7.png",
+      thinkerBlue: "./assets/image8.png",
+      chestGif: "./assets/image9.gif",
+      homeGreen: "./assets/image10.png",
+      thinkerGreen: "./assets/image11.png",
+      bgPink: "./assets/image12.jpeg",
+      homePink: "./assets/image13.png",
+      waterDrops: "./assets/image14.jpeg",
+      thinkerPink: "./assets/image15.png",
+      formulaIcon: "./assets/image16.png",
+      homeOrange: "./assets/image17.png",
+      thinkerOrange: "./assets/image18.png"
+    };
+
+    // ============================================================================
+    // ALL 25 SLIDES DATA EXTRACTED VERBATIM FROM Game.pptx (Slides 3 to 27)
+    // ============================================================================
+    const CATEGORIES = [
+      {
+        id: "parallelepiped",
+        name: "Parallelepiped",
+        labelClass: "cat-label-parallelepiped",
+        btnClass: "cat-parallelepiped",
+        questions: [
+          {
+            id: "p_10", slideNum: 3, points: 10, type: "question",
+            categoryTitle: "parallelepiped", subHeader: "Savol • 10 ball",
+            question: "1mm = ? dm",
+            answer: "0,01dm",
+            acceptedAnswers: ["0,01", "0.01", "0,01dm", "0.01dm", "0,01 dm", "0.01 dm"],
+            bg: MEDIA.bgBlue, homeImg: MEDIA.homeBlue, thinkerImg: MEDIA.thinkerBlue,
+            decor: "none"
+          },
+          {
+            id: "p_20", slideNum: 4, points: 20, type: "question",
+            categoryTitle: "parallelepiped", subHeader: "Yorug’lik",
+            question: "1kg = ? tonna",
+            answer: "0,001tonna",
+            acceptedAnswers: ["0,001", "0.001", "0,001tonna", "0.001tonna", "0,001 tonna", "0.001 tonna"],
+            bg: MEDIA.bgBlue, homeImg: MEDIA.homeBlue, thinkerImg: MEDIA.thinkerBlue,
+            decor: "none"
+          },
+          {
+            id: "p_30", slideNum: 5, points: 30, type: "question",
+            categoryTitle: "parallelepiped", subHeader: "Savol • 30 ball",
+            question: "12 * 8.8 = ?",
+            answer: "105,6",
+            acceptedAnswers: ["105,6", "105.6"],
+            bg: MEDIA.bgBlue, homeImg: MEDIA.homeBlue, thinkerImg: MEDIA.thinkerBlue,
+            decor: "none"
+          },
+          {
+            id: "p_40", slideNum: 6, points: 40, type: "lucky",
+            categoryTitle: "parallelepiped", subHeader: "Yorug’lik",
+            question: "Omadli lahza",
+            answer: "🎉 Tabriklaymiz! Omadli lahza: +40 bonus ball!",
+            chestsCount: 1,
+            bg: MEDIA.bgBlue, homeImg: MEDIA.homeBlue, thinkerImg: MEDIA.thinkerBlue,
+            decor: "none"
+          },
+          {
+            id: "p_50", slideNum: 7, points: 50, type: "question",
+            categoryTitle: "parallelepiped", subHeader: "Yorug’lik",
+            question: "Stol tennisining to’pi 2,73 g massaga ega. 8ta stol tennis to’pining massasi qancha?",
+            answer: "21,84",
+            acceptedAnswers: ["21,84", "21.84", "21,84g", "21.84g", "21,84 g", "21.84 g"],
+            bg: MEDIA.bgBlue, homeImg: MEDIA.homeBlue, thinkerImg: MEDIA.thinkerBlue,
+            decor: "none"
+          }
+        ]
+      },
+      {
+        id: "kub",
+        name: "kub",
+        labelClass: "cat-label-kub",
+        btnClass: "cat-kub",
+        questions: [
+          {
+            id: "k_10", slideNum: 8, points: 10, type: "lucky",
+            categoryTitle: "KUB", subHeader: "Bonus • 10 ball",
+            question: "Omadli lahza",
+            answer: "🎉 Tabriklaymiz! 3 ta xazina sandig'i: +10 bonus ball!",
+            chestsCount: 3,
+            bg: MEDIA.bgGreen, homeImg: MEDIA.homeGreen, thinkerImg: MEDIA.thinkerGreen,
+            decor: "none"
+          },
+          {
+            id: "k_20", slideNum: 9, points: 20, type: "question",
+            categoryTitle: "KUB", subHeader: "НОМИНАЦИЯ",
+            question: "1kg = ? sr",
+            answer: "0,01sr",
+            acceptedAnswers: ["0,01", "0.01", "0,01sr", "0.01sr", "0,01 sr", "0.01 sr"],
+            bg: MEDIA.bgGreen, homeImg: MEDIA.homeGreen, thinkerImg: MEDIA.thinkerGreen,
+            decor: "none"
+          },
+          {
+            id: "k_30", slideNum: 10, points: 30, type: "question",
+            categoryTitle: "KUB", subHeader: "НОМИНАЦИЯ",
+            question: "17.25 * 11 = ?",
+            answer: "189,75",
+            acceptedAnswers: ["189,75", "189.75"],
+            bg: MEDIA.bgGreen, homeImg: MEDIA.homeGreen, thinkerImg: MEDIA.thinkerGreen,
+            decor: "none"
+          },
+          {
+            id: "k_40", slideNum: 11, points: 40, type: "question",
+            categoryTitle: "KUB", subHeader: "НОМИНАЦИЯ",
+            question: "0,6(1,4 + 8,6) = ?",
+            answer: "6",
+            acceptedAnswers: ["6", "6,0", "6.0"],
+            bg: MEDIA.bgGreen, homeImg: MEDIA.homeGreen, thinkerImg: MEDIA.thinkerGreen,
+            decor: "none"
+          },
+          {
+            id: "k_50", slideNum: 12, points: 50, type: "question",
+            categoryTitle: "KUB", subHeader: "НОМИНАЦИЯ",
+            question: "Bir dona beton ustunni 3,5 soatda qurish mumkin bo’lsa, 12ta beton ustunni quruvchilar jamoasi necha soatda bitiradi?",
+            answer: "42",
+            acceptedAnswers: ["42", "42 soat", "42 soatda", "42soat"],
+            bg: MEDIA.bgGreen, homeImg: MEDIA.homeGreen, thinkerImg: MEDIA.thinkerGreen,
+            decor: "none"
+          }
+        ]
+      },
+      {
+        id: "slindr",
+        name: "slindr",
+        labelClass: "cat-label-slindr",
+        btnClass: "cat-slindr",
+        questions: [
+          {
+            id: "s_10", slideNum: 13, points: 10, type: "question",
+            categoryTitle: "SLINDR", subHeader: "Savol • 10 ball",
+            question: "24soat haftaning qandey ulushi?",
+            answer: "1/7",
+            acceptedAnswers: ["1/7", "7 dan 1", "1 / 7"],
+            bg: MEDIA.bgPink, homeImg: MEDIA.homePink, thinkerImg: MEDIA.thinkerPink,
+            decor: "water"
+          },
+          {
+            id: "s_20", slideNum: 14, points: 20, type: "question",
+            categoryTitle: "SLINDR", subHeader: "НОМИНАЦИЯ",
+            question: "1,5 * 2 = ?",
+            answer: "3",
+            acceptedAnswers: ["3", "3,0", "3.0"],
+            bg: MEDIA.bgPink, homeImg: MEDIA.homePink, thinkerImg: MEDIA.thinkerPink,
+            decor: "water"
+          },
+          {
+            id: "s_30", slideNum: 15, points: 30, type: "question",
+            categoryTitle: "SLINDR", subHeader: "НОМИНАЦИЯ",
+            question: "77,7 * 33 = ?",
+            answer: "2564,1",
+            acceptedAnswers: ["2564,1", "2564.1"],
+            bg: MEDIA.bgPink, homeImg: MEDIA.homePink, thinkerImg: MEDIA.thinkerPink,
+            decor: "water"
+          },
+          {
+            id: "s_40", slideNum: 16, points: 40, type: "question",
+            categoryTitle: "SLINDR", subHeader: "НОМИНАЦИЯ",
+            question: "0,5 * 3 + 7 * 0,5 = ?",
+            answer: "5",
+            acceptedAnswers: ["5", "5,0", "5.0"],
+            bg: MEDIA.bgPink, homeImg: MEDIA.homePink, thinkerImg: MEDIA.thinkerPink,
+            decor: "water"
+          },
+          {
+            id: "s_50", slideNum: 17, points: 50, type: "lucky",
+            categoryTitle: "SLINDR", subHeader: "НОМИНАЦИЯ",
+            question: "Omadli lahza",
+            answer: "🎉 Tabriklaymiz! Omadli lahza: +50 bonus ball!",
+            chestsCount: 1,
+            bg: MEDIA.bgPink, homeImg: MEDIA.homePink, thinkerImg: MEDIA.thinkerPink,
+            decor: "water"
+          }
+        ]
+      },
+      {
+        id: "konus",
+        name: "konus",
+        labelClass: "cat-label-konus",
+        btnClass: "cat-konus",
+        questions: [
+          {
+            id: "ko_10", slideNum: 18, points: 10, type: "question",
+            categoryTitle: "KONUS", subHeader: "НОМИНАЦИЯ",
+            question: "0,5 * 5 =",
+            answer: "2,5",
+            acceptedAnswers: ["2,5", "2.5"],
+            bg: MEDIA.bgBlue, homeImg: MEDIA.homeGreen, thinkerImg: MEDIA.thinkerGreen,
+            decor: "formula"
+          },
+          {
+            id: "ko_20", slideNum: 19, points: 20, type: "question",
+            categoryTitle: "KONUS", subHeader: "НОМИНАЦИЯ",
+            question: "3,5 * 20 = ?",
+            answer: "70",
+            acceptedAnswers: ["70", "70,0", "70.0"],
+            bg: MEDIA.bgBlue, homeImg: MEDIA.homeGreen, thinkerImg: MEDIA.thinkerGreen,
+            decor: "formula"
+          },
+          {
+            id: "ko_30", slideNum: 20, points: 30, type: "lucky",
+            categoryTitle: "KONUS", subHeader: "НОМИНАЦИЯ",
+            question: "OMADLI LAHZA",
+            answer: "🎉 Tabriklaymiz! Omadli lahza: +30 bonus ball!",
+            chestsCount: 1,
+            bg: MEDIA.bgBlue, homeImg: MEDIA.homeGreen, thinkerImg: MEDIA.thinkerGreen,
+            decor: "formula"
+          },
+          {
+            id: "ko_40", slideNum: 21, points: 40, type: "penalty",
+            penaltyPoints: -20,
+            categoryTitle: "KONUS", subHeader: "НОМИНАЦИЯ",
+            question: "-20 ball?",
+            answer: "⚡ Jarima katakchasi: jamoa hisobidan 20 ball chegiriladi (-20 ball)!",
+            bg: MEDIA.bgBlue, homeImg: MEDIA.homeGreen, thinkerImg: MEDIA.thinkerGreen,
+            decor: "formula"
+          },
+          {
+            id: "ko_50", slideNum: 22, points: 50, type: "question",
+            categoryTitle: "KONUS", subHeader: "НОМИНАЦИЯ",
+            question: "5ta yashil qutida 1,26kgdan, 6ta qizil qutida esa 1.026 kgdan shakar bor. Qaysi rangli qutilarda shakar ko’p?",
+            answer: "6,3 > 6,156 — Yashil rangli qutida",
+            acceptedAnswers: ["yashil", "yashil rangli", "yashil rangli qutida", "yashil qutida", "6,3", "6.3"],
+            bg: MEDIA.bgBlue, homeImg: MEDIA.homeGreen, thinkerImg: MEDIA.thinkerGreen,
+            decor: "formula"
+          }
+        ]
+      },
+      {
+        id: "shar",
+        name: "shar",
+        labelClass: "cat-label-shar",
+        btnClass: "cat-shar",
+        questions: [
+          {
+            id: "sh_10", slideNum: 23, points: 10, type: "question",
+            categoryTitle: "SHAR", subHeader: "НОМИНАЦИЯ",
+            question: "1gr ni kg da ifodalang?",
+            answer: "0,001",
+            acceptedAnswers: ["0,001", "0.001", "0,001kg", "0.001kg", "0,001 kg", "0.001 kg"],
+            bg: MEDIA.bgBlue, homeImg: MEDIA.homeGreen, thinkerImg: MEDIA.thinkerGreen,
+            decor: "formula"
+          },
+          {
+            id: "sh_20", slideNum: 24, points: 20, type: "lucky",
+            categoryTitle: "SHAR", subHeader: "Bonus • 20 ball",
+            question: "Omadli lahza",
+            answer: "🎉 Tabriklaymiz! Omadli lahza: +20 bonus ball!",
+            chestsCount: 1,
+            bg: MEDIA.bgBlue, homeImg: MEDIA.homeOrange, thinkerImg: MEDIA.thinkerOrange,
+            decor: "none"
+          },
+          {
+            id: "sh_30", slideNum: 25, points: 30, type: "question",
+            categoryTitle: "SHAR", subHeader: "НОМИНАЦИЯ",
+            question: "3,012 * 15 = ?",
+            answer: "45,18",
+            acceptedAnswers: ["45,18", "45.18"],
+            bg: MEDIA.bgBlue, homeImg: MEDIA.homeGreen, thinkerImg: MEDIA.thinkerGreen,
+            decor: "formula"
+          },
+          {
+            id: "sh_40", slideNum: 26, points: 40, type: "question",
+            categoryTitle: "SHAR", subHeader: "НОМИНАЦИЯ",
+            question: "2,005 * 8 =",
+            answer: "16,04",
+            acceptedAnswers: ["16,04", "16.04"],
+            bg: MEDIA.bgBlue, homeImg: MEDIA.homeGreen, thinkerImg: MEDIA.thinkerGreen,
+            decor: "none"
+          },
+          {
+            id: "sh_50", slideNum: 27, points: 50, type: "question",
+            categoryTitle: "SHAR", subHeader: "НОМИНАЦИЯ",
+            question: "Bir dona beton ustunni qurish uchun 7,84 qop sement va 14,3 metr temir kerak bo’ladi. 12ta beton ustun uchun qancha sement va temir kerak bo’ladi?",
+            answer: "94,08 qop sement, 171,6 metr temir kerak bo’ladi.",
+            acceptedAnswers: ["94,08 va 171,6", "94.08 va 171.6", "94,08", "94.08"],
+            bg: MEDIA.bgBlue, homeImg: MEDIA.homeGreen, thinkerImg: MEDIA.thinkerGreen,
+            decor: "formula"
+          }
+        ]
+      }
+    ];
+
+    // ============================================================================
+    // SYNTHESIZED SOUND ENGINE (Web Audio API)
+    // ============================================================================
+    let soundEnabled = true;
+    let audioCtx = null;
+
+    function initAudio() {
+      if (!audioCtx) {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (AudioContextClass) {
+          audioCtx = new AudioContextClass();
+        }
+      }
+      if (audioCtx && audioCtx.state === "suspended") {
+        audioCtx.resume();
+      }
+    }
+
+    function playSound(type) {
+      if (!soundEnabled) return;
+      try {
+        initAudio();
+        if (!audioCtx) return;
+        const now = audioCtx.currentTime;
+
+        if (type === "click") {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = "sine";
+          osc.frequency.setValueAtTime(520, now);
+          osc.frequency.exponentialRampToValueAtTime(680, now + 0.08);
+          gain.gain.setValueAtTime(0.12, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(now);
+          osc.stop(now + 0.09);
+        } else if (type === "reveal" || type === "correct") {
+          const notes = [523.25, 659.25, 783.99, 1046.5];
+          notes.forEach((freq, idx) => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = "triangle";
+            osc.frequency.setValueAtTime(freq, now + idx * 0.07);
+            gain.gain.setValueAtTime(0.15, now + idx * 0.07);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.07 + 0.25);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(now + idx * 0.07);
+            osc.stop(now + idx * 0.07 + 0.26);
+          });
+        } else if (type === "lucky") {
+          const notes = [587.33, 783.99, 987.77, 1174.66, 1567.98];
+          notes.forEach((freq, idx) => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = "sine";
+            osc.frequency.setValueAtTime(freq, now + idx * 0.08);
+            gain.gain.setValueAtTime(0.16, now + idx * 0.08);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.08 + 0.32);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(now + idx * 0.08);
+            osc.stop(now + idx * 0.08 + 0.34);
+          });
+        } else if (type === "penalty" || type === "wrong") {
+          const notes = [300, 220];
+          notes.forEach((freq, idx) => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = "sawtooth";
+            osc.frequency.setValueAtTime(freq, now + idx * 0.15);
+            gain.gain.setValueAtTime(0.12, now + idx * 0.15);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.15 + 0.22);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(now + idx * 0.15);
+            osc.stop(now + idx * 0.15 + 0.24);
+          });
+        }
+      } catch (e) {
+        // Ignore audio errors
+      }
+    }
+
+    // ============================================================================
+    // APPLICATION STATE
+    // ============================================================================
+    let state = {
+      currentView: "start", // 'start' | 'board' | 'question' | 'results'
+      playedIds: {},
+      activeQuestion: null,
+      answerRevealed: false,
+      pointsAwardedForCurrent: false,
+      currentTeamIndex: 0,
+      teams: [
+        { id: 1, name: "1-Jamoa (Bilimdonlar)", score: 0 },
+        { id: 2, name: "2-Jamoa (Zukkolar)", score: 0 }
+      ]
+    };
+
+    function loadSavedState() {
+      try {
+        const raw = localStorage.getItem("intellectual_game_pptx_state_v1");
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && Array.isArray(parsed.teams) && parsed.teams.length > 0) {
+            state.teams = parsed.teams;
+            state.playedIds = parsed.playedIds || {};
+            state.currentTeamIndex = parsed.currentTeamIndex || 0;
+          }
+        }
+      } catch (e) {}
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem("intellectual_game_pptx_state_v1", JSON.stringify({
+          teams: state.teams,
+          playedIds: state.playedIds,
+          currentTeamIndex: state.currentTeamIndex
+        }));
+      } catch (e) {}
+    }
+
+    // ============================================================================
+    // VIEW NAVIGATION & RENDERING
+    // ============================================================================
+    const slideStage = document.getElementById("slideStage");
+    const viewStart = document.getElementById("viewStart");
+    const viewBoard = document.getElementById("viewBoard");
+    const viewQuestion = document.getElementById("viewQuestion");
+    const viewResults = document.getElementById("viewResults");
+
+    function switchView(viewName) {
+      state.currentView = viewName;
+      viewStart.classList.add("hidden");
+      viewStart.classList.remove("flex");
+      viewBoard.classList.add("hidden");
+      viewBoard.classList.remove("flex");
+      viewQuestion.classList.add("hidden");
+      viewQuestion.classList.remove("flex");
+      viewResults.classList.add("hidden");
+      viewResults.classList.remove("flex");
+
+      if (viewName === "start") {
+        slideStage.style.backgroundImage = `url('${MEDIA.bgStart}')`;
+        viewStart.classList.remove("hidden");
+        viewStart.classList.add("flex");
+      } else if (viewName === "board") {
+        slideStage.style.backgroundImage = `url('${MEDIA.bgGreen}')`;
+        viewBoard.classList.remove("hidden");
+        viewBoard.classList.add("flex");
+        renderBoard();
+      } else if (viewName === "question") {
+        const q = state.activeQuestion;
+        slideStage.style.backgroundImage = `url('${q ? q.bg : MEDIA.bgBlue}')`;
+        viewQuestion.classList.remove("hidden");
+        viewQuestion.classList.add("flex");
+        renderQuestionSlide();
+      } else if (viewName === "results") {
+        slideStage.style.backgroundImage = `url('${MEDIA.bgGreen}')`;
+        viewResults.classList.remove("hidden");
+        viewResults.classList.add("flex");
+        renderResults();
+      }
+      renderTopBar();
+    }
+
+    function renderTopBar() {
+      const playedCount = Object.keys(state.playedIds).length;
+      document.getElementById("progressBadge").textContent = `${playedCount} / 25 o'ynaldi`;
+
+      const strip = document.getElementById("scoreboardStrip");
+      strip.innerHTML = "";
+      state.teams.forEach((team, idx) => {
+        const isTurn = idx === state.currentTeamIndex;
+        const badge = document.createElement("div");
+        badge.className = `flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs sm:text-sm font-bold transition cursor-pointer border ${
+          isTurn
+            ? "bg-amber-400 text-slate-950 border-white shadow-md scale-105"
+            : "bg-slate-800 text-slate-200 border-slate-600 hover:bg-slate-700"
+        }`;
+        badge.title = "Navbatni shu jamoaga berish uchun bosing";
+        badge.innerHTML = `
+          <span>${isTurn ? "🎯" : "🛡️"} ${escapeHtml(team.name)}:</span>
+          <span class="px-2 py-0.5 rounded-lg ${isTurn ? "bg-slate-950 text-amber-300" : "bg-slate-900 text-emerald-400"} font-extrabold">${team.score}</span>
+        `;
+        badge.addEventListener("click", () => {
+          state.currentTeamIndex = idx;
+          saveState();
+          renderTopBar();
+          if (state.currentView === "board") renderBoard();
+        });
+        strip.appendChild(badge);
+      });
+
+      const currentTeam = state.teams[state.currentTeamIndex] || state.teams[0];
+      const currentTeamNameEl = document.getElementById("currentTeamName");
+      if (currentTeamNameEl && currentTeam) {
+        currentTeamNameEl.textContent = currentTeam.name;
+      }
+    }
+
+    function renderBoard() {
+      const grid = document.getElementById("boardGrid");
+      grid.innerHTML = "";
+
+      CATEGORIES.forEach((cat) => {
+        const row = document.createElement("div");
+        row.className = "grid grid-cols-12 gap-2 sm:gap-3 items-center";
+
+        // Category Title Button (Left 4 cols, matches Slide 2 layout)
+        const catBox = document.createElement("div");
+        catBox.className = `col-span-5 sm:col-span-4 bevel-btn ${cat.labelClass} py-3 sm:py-4 px-3 text-center font-display text-base sm:text-2xl font-black tracking-wide truncate`;
+        catBox.textContent = cat.name;
+        row.appendChild(catBox);
+
+        // 5 Point Buttons (Right 7 or 8 cols)
+        const ptsWrap = document.createElement("div");
+        ptsWrap.className = "col-span-7 sm:col-span-8 grid grid-cols-5 gap-1.5 sm:gap-3";
+
+        cat.questions.forEach((q) => {
+          const isPlayed = !!state.playedIds[q.id];
+          const btn = document.createElement("button");
+          btn.className = `bevel-btn ${cat.btnClass} py-2.5 sm:py-3.5 text-center font-display text-lg sm:text-3xl font-black ${
+            isPlayed ? "played-tile" : ""
+          }`;
+          btn.innerHTML = isPlayed ? `<span class="line-through opacity-75">${q.points}</span>` : `${q.points}`;
+          btn.title = isPlayed ? `${cat.name} ${q.points} (O'ynalgan — qayta ko'rish uchun bosing)` : `${cat.name} — ${q.points} ball`;
+
+          btn.addEventListener("click", () => {
+            playSound("click");
+            openQuestion(q);
+          });
+          ptsWrap.appendChild(btn);
+        });
+
+        row.appendChild(ptsWrap);
+        grid.appendChild(row);
+      });
+    }
+
+    function openQuestion(q) {
+      state.activeQuestion = q;
+      state.answerRevealed = false;
+      state.pointsAwardedForCurrent = false;
+      switchView("question");
+
+      if (q.type === "lucky") {
+        playSound("lucky");
+      } else if (q.type === "penalty") {
+        playSound("penalty");
+      }
+    }
+
+    function renderQuestionSlide() {
+      const q = state.activeQuestion;
+      if (!q) return;
+
+      // Decor strip (Water droplets for Slindr, Formula for Konus/Shar)
+      const decorStrip = document.getElementById("questionDecorStrip");
+      const formulaLeft = document.getElementById("formulaImgLeft");
+      const formulaRight = document.getElementById("formulaImgRight");
+      const nominationLabel = document.getElementById("nominationLabel");
+
+      if (q.decor === "water") {
+        decorStrip.classList.remove("hidden");
+        decorStrip.classList.add("flex");
+        decorStrip.style.backgroundImage = `url('${MEDIA.waterDrops}')`;
+        decorStrip.style.backgroundSize = "120px";
+        formulaLeft.classList.add("hidden");
+        formulaRight.classList.add("hidden");
+        nominationLabel.textContent = "💧 SLINDR BO'LIMI";
+        nominationLabel.className = "text-xs sm:text-sm font-extrabold tracking-widest uppercase text-blue-950 bg-white/85 px-3 py-0.5 rounded-full";
+      } else if (q.decor === "formula") {
+        decorStrip.classList.remove("hidden");
+        decorStrip.classList.add("flex");
+        decorStrip.style.backgroundImage = "none";
+        decorStrip.style.backgroundColor = "rgba(30, 41, 59, 0.82)";
+        formulaLeft.classList.remove("hidden");
+        formulaRight.classList.remove("hidden");
+        nominationLabel.textContent = "📐 FIZIKA-MATEMATIKA • U = A / q";
+        nominationLabel.className = "text-xs sm:text-sm font-extrabold tracking-widest uppercase text-amber-300";
+      } else {
+        decorStrip.classList.add("hidden");
+        decorStrip.classList.remove("flex");
+      }
+
+      document.getElementById("qSubHeader").textContent = q.subHeader || "НОМИНАЦИЯ";
+      document.getElementById("qCategoryTitle").textContent = q.categoryTitle;
+      document.getElementById("qPointsBadge").textContent = q.points;
+      document.getElementById("qSlideRef").textContent = `PPTX Slayd #${q.slideNum}`;
+      document.getElementById("qText").textContent = q.question;
+
+      // Set authentic PPTX Thinker & Home images
+      document.getElementById("qThinkerImg").src = q.thinkerImg;
+      document.getElementById("qHomeImg").src = q.homeImg;
+
+      // Lucky Chests (image9.gif)
+      const chestsContainer = document.getElementById("luckyChestsContainer");
+      chestsContainer.innerHTML = "";
+      if (q.type === "lucky") {
+        chestsContainer.classList.remove("hidden");
+        chestsContainer.classList.add("flex");
+        const count = q.chestsCount || 1;
+        for (let i = 0; i < count; i++) {
+          const img = document.createElement("img");
+          img.src = MEDIA.chestGif;
+          img.alt = "Omadli lahza xazina sandig'i";
+          img.className = "h-28 sm:h-36 w-auto object-contain rounded-2xl shadow-lg border-2 border-amber-300 bg-slate-900/40 p-2";
+          chestsContainer.appendChild(img);
+        }
+      } else {
+        chestsContainer.classList.add("hidden");
+        chestsContainer.classList.remove("flex");
+      }
+
+      // Penalty Notice
+      const penaltyNotice = document.getElementById("penaltyNotice");
+      if (q.type === "penalty") {
+        penaltyNotice.classList.remove("hidden");
+      } else {
+        penaltyNotice.classList.add("hidden");
+      }
+
+      // Student Quick Input Row
+      const inputRow = document.getElementById("interactiveInputRow");
+      const answerInput = document.getElementById("studentAnswerInput");
+      const feedbackMsg = document.getElementById("answerFeedbackMsg");
+      feedbackMsg.classList.add("hidden");
+      answerInput.value = "";
+
+      if (q.type === "question") {
+        inputRow.classList.remove("hidden");
+        inputRow.classList.add("flex");
+      } else {
+        inputRow.classList.add("hidden");
+        inputRow.classList.remove("flex");
+      }
+
+      // Auto-reveal for Lucky & Penalty slides, or wait for Thinker click on regular questions
+      if (q.type === "lucky" || q.type === "penalty") {
+        revealAnswerOnSlide(false);
+      } else {
+        document.getElementById("answerHiddenHint").classList.remove("hidden");
+        document.getElementById("answerRevealBox").classList.add("hidden");
+        document.getElementById("thinkerCaption").textContent = "🔍 Javobni ochish";
+      }
+    }
+
+    function revealAnswerOnSlide(playSfx = true) {
+      const q = state.activeQuestion;
+      if (!q) return;
+      state.answerRevealed = true;
+      state.playedIds[q.id] = true;
+      saveState();
+      renderTopBar();
+
+      if (playSfx) {
+        playSound("reveal");
+      }
+
+      document.getElementById("answerHiddenHint").classList.add("hidden");
+      const revealBox = document.getElementById("answerRevealBox");
+      revealBox.classList.remove("hidden");
+      document.getElementById("qAnswerText").textContent = q.answer;
+      document.getElementById("thinkerCaption").textContent = "✓ Javob ochildi";
+
+      renderScoringButtons();
+    }
+
+    function renderScoringButtons() {
+      const q = state.activeQuestion;
+      const row = document.getElementById("scoringButtonsRow");
+      row.innerHTML = "";
+
+      if (state.pointsAwardedForCurrent) {
+        const doneMsg = document.createElement("div");
+        doneMsg.className = "text-xs sm:text-sm font-bold text-emerald-700 flex items-center justify-between w-full";
+        doneMsg.innerHTML = `
+          <span>✅ Ball hisobga yozildi! Endi o'ng tarafdagi Uycha (Doskaga) tugmasini bosing.</span>
+          <button id="btnInlineReturnBoard" class="px-4 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow">
+            🏠 Doskaga qaytish
+          </button>
+        `;
+        row.appendChild(doneMsg);
+        document.getElementById("btnInlineReturnBoard").addEventListener("click", () => {
+          playSound("click");
+          switchView("board");
+        });
+        return;
+      }
+
+      const delta = q.type === "penalty" ? (q.penaltyPoints || -20) : q.points;
+      const labelPrefix = delta > 0 ? `+${delta} ball:` : `${delta} ball:`;
+
+      state.teams.forEach((team, idx) => {
+        const btn = document.createElement("button");
+        const isCurrent = idx === state.currentTeamIndex;
+        btn.className = `px-3.5 py-2 rounded-xl font-bold text-xs sm:text-sm transition shadow ${
+          delta < 0
+            ? "bg-rose-600 hover:bg-rose-500 text-white"
+            : isCurrent
+            ? "bg-emerald-600 hover:bg-emerald-500 text-white ring-2 ring-emerald-300"
+            : "bg-slate-800 hover:bg-slate-700 text-white"
+        }`;
+        btn.textContent = `${labelPrefix} ${team.name}`;
+        btn.addEventListener("click", () => {
+          team.score += delta;
+          state.pointsAwardedForCurrent = true;
+          state.currentTeamIndex = (idx + 1) % state.teams.length;
+          saveState();
+          playSound(delta > 0 ? "correct" : "penalty");
+          renderTopBar();
+          renderScoringButtons();
+        });
+        row.appendChild(btn);
+      });
+
+      const skipBtn = document.createElement("button");
+      skipBtn.className = "px-3 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold text-xs sm:text-sm transition";
+      skipBtn.textContent = "Ball bermasdan qaytish";
+      skipBtn.addEventListener("click", () => {
+        state.pointsAwardedForCurrent = true;
+        state.currentTeamIndex = (state.currentTeamIndex + 1) % state.teams.length;
+        saveState();
+        playSound("click");
+        switchView("board");
+      });
+      row.appendChild(skipBtn);
+    }
+
+    function checkStudentInputAnswer() {
+      const q = state.activeQuestion;
+      if (!q || q.type !== "question") return;
+      const inputEl = document.getElementById("studentAnswerInput");
+      const feedbackEl = document.getElementById("answerFeedbackMsg");
+      const rawVal = (inputEl.value || "").trim().toLowerCase().replace(/\s+/g, " ");
+
+      if (!rawVal) {
+        feedbackEl.textContent = "⚠️ Iltimos, avval javobni kiriting yoki '?' rasmini bosing!";
+        feedbackEl.className = "block text-xs sm:text-sm font-extrabold px-4 py-1.5 rounded-xl bg-amber-100 text-amber-900 border border-amber-300";
+        return;
+      }
+
+      const normVal = rawVal.replace(/\./g, ",");
+      const isCorrect = (q.acceptedAnswers || []).some((ans) => {
+        const normAns = ans.toLowerCase().trim().replace(/\./g, ",");
+        return normVal === normAns || rawVal.includes(normAns);
+      });
+
+      feedbackEl.classList.remove("hidden");
+      if (isCorrect) {
+        playSound("correct");
+        feedbackEl.textContent = `🎉 Barakalla! Javobingiz to'g'ri (${q.answer})!`;
+        feedbackEl.className = "block text-xs sm:text-sm font-extrabold px-4 py-1.5 rounded-xl bg-emerald-100 text-emerald-900 border border-emerald-400";
+        revealAnswerOnSlide(false);
+      } else {
+        playSound("wrong");
+        feedbackEl.textContent = "❌ Javobingiz biroz xato. Yana urinib ko'ring yoki '?' rasmini bosib javobni ko'ring!";
+        feedbackEl.className = "block text-xs sm:text-sm font-extrabold px-4 py-1.5 rounded-xl bg-rose-100 text-rose-900 border border-rose-400";
+      }
+    }
+
+    function renderResults() {
+      const container = document.getElementById("resultsLeaderboard");
+      container.innerHTML = "";
+
+      const sorted = [...state.teams].sort((a, b) => b.score - a.score);
+      const medals = ["🥇", "🥈", "🥉", "🏅", "🎖️"];
+
+      sorted.forEach((team, idx) => {
+        const card = document.createElement("div");
+        card.className = `flex items-center justify-between px-5 py-3.5 rounded-2xl border-2 ${
+          idx === 0
+            ? "bg-amber-50 border-amber-400 shadow-md"
+            : "bg-slate-50 border-slate-200"
+        }`;
+        card.innerHTML = `
+          <div class="flex items-center gap-3">
+            <span class="text-2xl sm:text-3xl">${medals[idx] || "🏅"}</span>
+            <div class="text-left">
+              <div class="font-display text-base sm:text-xl font-black text-slate-900">${escapeHtml(team.name)}</div>
+              <div class="text-xs font-semibold text-slate-500">${idx === 0 ? "G'olib jamoa!" : `${idx + 1}-o'rin`}</div>
+            </div>
+          </div>
+          <div class="px-4 py-1.5 rounded-xl bg-slate-900 text-amber-300 font-display text-xl sm:text-2xl font-black">
+            ${team.score} ball
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    // ============================================================================
+    // TEAMS EDITOR MODAL
+    // ============================================================================
+    function openTeamsModal() {
+      const modal = document.getElementById("modalTeams");
+      modal.classList.remove("hidden");
+      modal.classList.add("flex");
+      renderTeamsEditor();
+    }
+
+    function closeTeamsModal() {
+      const modal = document.getElementById("modalTeams");
+      modal.classList.add("hidden");
+      modal.classList.remove("flex");
+      saveState();
+      renderTopBar();
+      if (state.currentView === "board") renderBoard();
+      if (state.currentView === "question" && state.answerRevealed) renderScoringButtons();
+      if (state.currentView === "results") renderResults();
+    }
+
+    function renderTeamsEditor() {
+      const list = document.getElementById("teamsEditorList");
+      list.innerHTML = "";
+      state.teams.forEach((team, idx) => {
+        const row = document.createElement("div");
+        row.className = "flex items-center gap-2 bg-slate-50 p-2 rounded-xl border border-slate-200";
+        row.innerHTML = `
+          <input type="text" value="${escapeHtml(team.name)}" data-idx="${idx}" class="team-name-input flex-1 px-3 py-1.5 rounded-lg border border-slate-300 text-sm font-semibold text-slate-800" />
+          <input type="number" step="10" value="${team.score}" data-idx="${idx}" class="team-score-input w-24 px-2.5 py-1.5 rounded-lg border border-slate-300 text-sm font-bold text-center text-slate-900" />
+          ${
+            state.teams.length > 1
+              ? `<button data-idx="${idx}" class="team-del-btn px-2.5 py-1.5 rounded-lg bg-rose-100 hover:bg-rose-200 text-rose-700 font-bold text-xs">🗑️</button>`
+              : ""
+          }
+        `;
+        list.appendChild(row);
+      });
+
+      list.querySelectorAll(".team-name-input").forEach((inp) => {
+        inp.addEventListener("input", (e) => {
+          const i = parseInt(e.target.getAttribute("data-idx"), 10);
+          state.teams[i].name = e.target.value || `${i + 1}-Jamoa`;
+        });
+      });
+      list.querySelectorAll(".team-score-input").forEach((inp) => {
+        inp.addEventListener("input", (e) => {
+          const i = parseInt(e.target.getAttribute("data-idx"), 10);
+          state.teams[i].score = parseInt(e.target.value, 10) || 0;
+        });
+      });
+      list.querySelectorAll(".team-del-btn").forEach((btn) => {
+        btn.addEventListener("click", (e) => {
+          const i = parseInt(e.currentTarget.getAttribute("data-idx"), 10);
+          if (state.teams.length > 1) {
+            state.teams.splice(i, 1);
+            if (state.currentTeamIndex >= state.teams.length) state.currentTeamIndex = 0;
+            renderTeamsEditor();
+          }
+        });
+      });
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    // ============================================================================
+    // EVENT LISTENERS INITIALIZATION
+    // ============================================================================
+    window.addEventListener("DOMContentLoaded", () => {
+      loadSavedState();
+      switchView("start");
+
+      // Start Screen buttons
+      document.getElementById("btnStartGame").addEventListener("click", () => {
+        playSound("reveal");
+        switchView("board");
+      });
+
+      document.getElementById("btnOpenLinks").addEventListener("click", () => {
+        playSound("click");
+        const m = document.getElementById("modalInfo");
+        m.classList.remove("hidden");
+        m.classList.add("flex");
+      });
+
+      // Top Navigation
+      document.getElementById("btnTopHome").addEventListener("click", () => {
+        playSound("click");
+        switchView("start");
+      });
+
+      document.getElementById("btnTopBoard").addEventListener("click", () => {
+        playSound("click");
+        switchView("board");
+      });
+
+      document.getElementById("btnSoundToggle").addEventListener("click", () => {
+        soundEnabled = !soundEnabled;
+        document.getElementById("btnSoundToggle").textContent = soundEnabled ? "🔊 Ovoz: Yoqilgan" : "🔇 Ovoz: O'chiq";
+        if (soundEnabled) playSound("click");
+      });
+
+      document.getElementById("btnResetGame").addEventListener("click", () => {
+        playSound("click");
+        state.playedIds = {};
+        state.teams.forEach((t) => (t.score = 0));
+        state.currentTeamIndex = 0;
+        saveState();
+        switchView("board");
+      });
+
+      // Board Exit Button -> Results
+      document.getElementById("btnFinishGame").addEventListener("click", () => {
+        playSound("lucky");
+        switchView("results");
+      });
+
+      // Question Slide Controls
+      document.getElementById("btnThinkerReveal").addEventListener("click", () => {
+        revealAnswerOnSlide(true);
+      });
+
+      document.getElementById("btnSlideHome").addEventListener("click", () => {
+        playSound("click");
+        if (state.activeQuestion) {
+          state.playedIds[state.activeQuestion.id] = true;
+          saveState();
+        }
+        switchView("board");
+      });
+
+      document.getElementById("btnCheckAnswer").addEventListener("click", () => {
+        checkStudentInputAnswer();
+      });
+
+      document.getElementById("studentAnswerInput").addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          checkStudentInputAnswer();
+        }
+      });
+
+      // Results Controls
+      document.getElementById("btnBackToBoardFromResults").addEventListener("click", () => {
+        playSound("click");
+        switchView("board");
+      });
+
+      document.getElementById("btnPlayAgain").addEventListener("click", () => {
+        playSound("reveal");
+        state.playedIds = {};
+        state.teams.forEach((t) => (t.score = 0));
+        state.currentTeamIndex = 0;
+        saveState();
+        switchView("board");
+      });
+
+      // Teams Modal Controls
+      document.getElementById("btnTeamModal").addEventListener("click", () => {
+        playSound("click");
+        openTeamsModal();
+      });
+      document.getElementById("btnCloseTeamsModal").addEventListener("click", closeTeamsModal);
+      document.getElementById("btnSaveTeams").addEventListener("click", closeTeamsModal);
+      document.getElementById("btnAddTeam").addEventListener("click", () => {
+        const nextNum = state.teams.length + 1;
+        state.teams.push({ id: Date.now(), name: `${nextNum}-Jamoa`, score: 0 });
+        renderTeamsEditor();
+      });
+
+      // Info / Gallery / Vercel Modal Controls
+      const closeInfo = () => {
+        const m = document.getElementById("modalInfo");
+        m.classList.add("hidden");
+        m.classList.remove("flex");
+      };
+      document.getElementById("btnCloseInfoModal").addEventListener("click", closeInfo);
+      document.getElementById("btnCloseInfoModalBottom").addEventListener("click", closeInfo);
+      document.getElementById("btnFooterDeployInfo").addEventListener("click", () => {
+        const m = document.getElementById("modalInfo");
+        m.classList.remove("hidden");
+        m.classList.add("flex");
+      });
+      document.getElementById("btnFooterGallery").addEventListener("click", () => {
+        const m = document.getElementById("modalInfo");
+        m.classList.remove("hidden");
+        m.classList.add("flex");
+      });
+    });
+  </script>
+</body>
+</html>
